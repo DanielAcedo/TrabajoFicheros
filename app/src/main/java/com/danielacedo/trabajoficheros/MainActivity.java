@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 if (checkPathImage())
                     downloadGallery();
                 else{
-                    imv_image.setImageResource(R.drawable.error);
+                    imv_image.setImageResource(android.R.color.transparent);
                     txv_galleryPosition.setText("");
                 }
 
