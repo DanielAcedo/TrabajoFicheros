@@ -258,8 +258,8 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
                 progress.dismiss();
                 disableGallery();
-                Toast.makeText(MainActivity.this, "Fallo en la conexión al descargar archivo de imágenes", Toast.LENGTH_SHORT).show();
-                uploadError("Fallo en la conexión al descargar archivo de imágenes");
+                Toast.makeText(MainActivity.this, "Fallo en la conexión al descargar archivo de imagenes", Toast.LENGTH_SHORT).show();
+                uploadError("Fallo en la conexión al descargar archivo "+edt_ImagePath.getText().toString());
             }
             @Override
             public void onSuccess(int statusCode, Header[] headers, File response){
@@ -348,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
                 progress.dismiss();
                 Toast.makeText(MainActivity.this, "Fallo en la conexión al fichero de frases", Toast.LENGTH_SHORT).show();
-                uploadError("Fallo en la conexión al fichero de frases");
+                uploadError("Fallo en la conexión al fichero de frases "+edt_TextPath.getText().toString());
             }
             @Override
             public void onSuccess(int statusCode, Header[] headers, File response){
