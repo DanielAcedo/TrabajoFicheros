@@ -2,8 +2,10 @@ package com.danielacedo.trabajoficheros;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -12,13 +14,22 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.DataAsyncHttpResponseHandler;
 import com.loopj.android.http.FileAsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.TextHttpResponseHandler;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+
+import org.joda.time.DateTime;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,11 +42,16 @@ public class MainActivity extends AppCompatActivity {
     TextView txv_galleryPosition, txv_CurrentText, txv_text_position;
     ImageView imv_image;
 
+    private final String errorUploadPath = "http://192.168.1.132/datos/error.php";
+
     private int currentImage;
     private int currentText;
 
     private String[] gallery;
     private String[] phrases;
+
+    CustomTimer timerImages;
+    CustomTimer timerText;
 
     private int timerTick;
 
@@ -44,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        timerTick = 0;
+        timerTick = 1;
         currentImage = 0;
         currentText = 0;
 
@@ -64,16 +80,44 @@ public class MainActivity extends AppCompatActivity {
         btn_Download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(checkPath()){
-                    //downloadGallery();
+                if (checkPathImage())
+                    downloadGallery();
+                else{
+                    imv_image.setImageResource(R.drawable.error);
+                    txv_galleryPosition.setText("");
+                }
+
+                if (checkPathPhrases())
                     downloadPhrases();
+                else{
+                    txv_CurrentText.setText("");
+                    txv_text_position.setText("");
                 }
             }
         });
 
+        checkTimerTick();
+
     }
 
-    private void setBtn_GalleryDown() {
+
+    private void checkTimerTick(){
+        BufferedReader reader = new BufferedReader(new InputStreamReader(getResources().openRawResource(R.raw.intervalo)));
+
+        try {
+            String line = reader.readLine();
+
+            int intervalo = Integer.parseInt(line);
+
+            timerTick = intervalo;
+        } catch (IOException e) {
+            Toast.makeText(MainActivity.this, "Error al leer intervalo.txt", Toast.LENGTH_SHORT).show();
+        } catch (NumberFormatException e){
+            Toast.makeText(MainActivity.this, "intervalo.txt no contiene un número", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void set_GalleryDown() {
         if(currentImage == 0){
             currentImage = gallery.length-1;
         }else{
@@ -82,14 +126,38 @@ public class MainActivity extends AppCompatActivity {
         setImage();
     }
 
-    private void setBtn_GalleryUp(){
+    private void set_GalleryUp(){
         currentImage = (currentImage+1)%gallery.length;
         setImage();
     }
 
+    private void set_PhraseDown() {
+        if(currentText == 0){
+            currentText = phrases.length-1;
+        }else{
+            currentText = (currentText-1)%phrases.length;
+        }
+        setPhrase();
+    }
+
+    private void set_PhraseUp(){
+        currentText = (currentText+1)%phrases.length;
+        setPhrase();
+    }
+
     private void setImage(){
         try{
-            Picasso.with(MainActivity.this).load(gallery[currentImage]).error(R.drawable.error).placeholder(R.drawable.progressanimation).into(imv_image);
+            Picasso.Builder picassoBuilder = new Picasso.Builder(MainActivity.this);
+
+            picassoBuilder = picassoBuilder.listener(new Picasso.Listener() {
+                @Override
+                public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
+                    uploadError("Error al cargar imagen de url: "+uri+" .Error: "+exception.getMessage());
+                }
+            });
+
+
+            picassoBuilder.build().load(gallery[currentImage]).error(R.drawable.error).placeholder(R.drawable.progressanimation).into(imv_image);
             refreshGalleryPositionText();
         }
         catch(IndexOutOfBoundsException ex){
@@ -104,21 +172,56 @@ public class MainActivity extends AppCompatActivity {
     private void setPhrase(){
         try{
             txv_CurrentText.setText(phrases[currentText]);
-
+            refreshTextPosition();
         }catch(IndexOutOfBoundsException ex){
             Toast.makeText(MainActivity.this, "No hay frases en la galeria", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private boolean checkPath(){
+    private boolean checkPathImage(){
         boolean ok = true;
 
         if(edt_ImagePath.getText().toString().isEmpty()){
-            Toast.makeText(MainActivity.this, "Dirección vacía", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Dirección de imagen vacía", Toast.LENGTH_SHORT).show();
             ok = false;
         }
 
         return ok;
+    }
+
+    private boolean checkPathPhrases(){
+        boolean ok = true;
+
+        if(edt_TextPath.getText().toString().isEmpty()){
+            Toast.makeText(MainActivity.this, "Dirección de frases vacía", Toast.LENGTH_SHORT).show();
+            ok = false;
+        }
+
+        return ok;
+    }
+
+    private void uploadError(String error){
+
+        if(!Patterns.WEB_URL.matcher(errorUploadPath).matches()){
+            Log.e("Error","El path para subir errores no es valido");
+            return;
+        }
+
+        RequestParams params = new RequestParams();
+        String errorConFecha = DateTime.now().toString("d-M-y H:m:s") + " : " + error;
+        params.add("error", errorConFecha);
+
+        RestClient.post(errorUploadPath, params, new TextHttpResponseHandler() {
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                Toast.makeText(MainActivity.this, "Problema al subir el error", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                Toast.makeText(MainActivity.this, responseString, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void downloadGallery(){
@@ -126,7 +229,13 @@ public class MainActivity extends AppCompatActivity {
 
         if(!edt_ImagePath.getText().toString().startsWith("http://")){
             String text = "http://"+ edt_ImagePath.getText().toString();
+
             edt_ImagePath.setText(text);
+        }
+
+        if(!Patterns.WEB_URL.matcher(edt_ImagePath.getText().toString()).matches()){
+            Toast.makeText(MainActivity.this, "URL no valida", Toast.LENGTH_SHORT).show();
+            return;
         }
 
         final ProgressDialog progress = new ProgressDialog(MainActivity.this);
@@ -149,7 +258,8 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
                 progress.dismiss();
                 disableGallery();
-                Toast.makeText(MainActivity.this, "Fallo en la conexión", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Fallo en la conexión al descargar archivo de imágenes", Toast.LENGTH_SHORT).show();
+                uploadError("Fallo en la conexión al descargar archivo de imágenes");
             }
             @Override
             public void onSuccess(int statusCode, Header[] headers, File response){
@@ -165,6 +275,8 @@ public class MainActivity extends AppCompatActivity {
                             urls.add(line);
                         }
                     }
+
+                    reader.close();
                 } catch (IOException e) {
                     Toast.makeText(MainActivity.this, "Fallo de lectura del archivo", Toast.LENGTH_SHORT);
                 }
@@ -176,12 +288,28 @@ public class MainActivity extends AppCompatActivity {
                     gallery[i] = urls.get(i);
                 }
 
+
                 if(checkGalleryFile()){
                     enableGallery();
+
+                    if(timerImages != null){
+                        timerImages.cancel();
+                    }
+
+                    currentImage = 0;
                     setImage();
+                    timerImages = new CustomTimer(gallery.length, timerTick, new CustomTimer.TimerCallback() {
+                        @Override
+                        public void onTick() {
+                            set_GalleryUp();
+                        }
+                    });
+
+                    timerImages.start();
                 }else{
                     disableGallery();
-                    Toast.makeText(MainActivity.this, "Fichero mal formateado", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Fichero de imagenes mal formateado", Toast.LENGTH_SHORT).show();
+                    uploadError("Fichero de imágenes mal formateado");
                 }
             }
 
@@ -193,6 +321,11 @@ public class MainActivity extends AppCompatActivity {
         if(!edt_TextPath.getText().toString().startsWith("http://")){
             String text = "http://"+ edt_TextPath.getText().toString();
             edt_TextPath.setText(text);
+        }
+
+        if(!Patterns.WEB_URL.matcher(edt_TextPath.getText().toString()).matches()){
+            Toast.makeText(MainActivity.this, "URL no valida", Toast.LENGTH_SHORT).show();
+            return;
         }
 
         final ProgressDialog progress = new ProgressDialog(MainActivity.this);
@@ -214,7 +347,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
                 progress.dismiss();
-                Toast.makeText(MainActivity.this, "Fallo en la conexión", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Fallo en la conexión al fichero de frases", Toast.LENGTH_SHORT).show();
+                uploadError("Fallo en la conexión al fichero de frases");
             }
             @Override
             public void onSuccess(int statusCode, Header[] headers, File response){
@@ -222,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
                 progress.dismiss();
 
                 try {
-                    BufferedReader reader = new BufferedReader(new FileReader(file));
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(response), "UTF-8"));
                     String line;
 
                     while((line = reader.readLine()) != null){
@@ -230,18 +364,35 @@ public class MainActivity extends AppCompatActivity {
                             urls.add(line);
                         }
                     }
+
+                    reader.close();
                 } catch (IOException e) {
-                    Toast.makeText(MainActivity.this, "Fallo de lectura del archivo", Toast.LENGTH_SHORT);
+                    Toast.makeText(MainActivity.this, "Fallo de lectura del archivo de frases", Toast.LENGTH_SHORT);
+                    uploadError("Fallo de lectura del archivo de frases");
                 }
 
-                if (urls.size() != 0)
+                if (urls.size() != 0) {
                     phrases = new String[urls.size()];
 
-                for(int i = 0; i<urls.size(); i++){
-                    phrases[i] = urls.get(i);
+                    for (int i = 0; i < urls.size(); i++) {
+                        phrases[i] = urls.get(i);
+                    }
+
+                    if(timerText != null){
+                        timerText.cancel();
+                    }
+
+                    currentText = 0;
+                    setPhrase();
+                    timerText = new CustomTimer(phrases.length, timerTick, new CustomTimer.TimerCallback() {
+                        @Override
+                        public void onTick() {
+                            set_PhraseUp();
+                        }
+                    });
+
+                    timerText.start();
                 }
-
-
             }
 
         });
@@ -249,7 +400,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void refreshGalleryPositionText(){
         txv_galleryPosition.setText((currentImage+1)+"/"+gallery.length);
-        txv_text_position.setText((currentText+1)+"/"+txv_text_position);
+    }
+
+    private void refreshTextPosition(){
+        txv_text_position.setText((currentText+1)+"/"+phrases.length);
     }
 
     private void enableGallery(){

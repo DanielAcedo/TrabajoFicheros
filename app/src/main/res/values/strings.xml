@@ -1,53 +1,7 @@
 <resources>
-    <string name="app_name">Ej. Introduccion Datos</string>
+    <string name="app_name">Trabajo Ficheros</string>
     <string name="nada"></string>
 
-    <!-- Menu-->
-    <string name="menu_title">Tema 1</string>
-
-    <!-- Ejercicio 1-->
-    <string name="ej1_title">ConversiónMoneda</string>
-    <string name="txv_Euros_text">Euros</string>
-    <string name="txv_Dolares_text">Dólares</string>
-    <string name="btn_ActualizarRatio_text">Actualizar divisas</string>
-    <string name="txv_InfoDivisa_text_correcto">El ratio de divisa actual es: \n</string>
-    <string name="btn_InfoDivisa_text_conectando">Conectando al servidor... </string>
-    <string name="txv_InfoDivisa_text_error">Error al conectar al servidor</string>
-    <string name="rbt_DolaresAEuros_text">Dólares a Euros</string>
-    <string name="rbt_EurosADolares_text">Euros a Dólares</string>
-    <string name="btn_Convertir_text">Convertir</string>
-    <string name="parseEurosError">Error al leer los euros introducidos, asegurate de que sea un número</string>
-    <string name="parseDolaresError">Error al leer los dólares introducidos, asegurate de que sea un número</string>
-
-    <!-- Ejercicio 2-->
-    <string name="ej2_title">Conversor de centímetros a pulgadas</string>
-    <string name="btn_ConvertirCm_text">Convertir</string>
-    <string name="txv_Cm_text_cm">Centímetros</string>
-    <string name="txv_Cm_text_inches">Pulgadas</string>
-    <string name="btn_CambiarModo_text">Cambiar modo</string>
-
-    <!-- Ejercicio 3 -->
-    <string name="ej3_title">Visor Web</string>
-    <string name="txv_LinkEntry">Escribe el enlace web</string>
-    <string name="btn_OkWeb">Ir</string>
-
-    <!-- Ejercicio 4-->
-    <string name="ej4_title">Contador de cafés</string>
-    <string name="txv_CoffeeCounterTitle">Cafés</string>
-    <string name="txv_CoffeeCounter_Default">0</string>
-    <string name="txv_TimeCounter">00:00</string>
-    <string name="txv_TimeCounter_finished">Terminado!</string>
-    <string name="btn_AddSeg">+ Seg</string>
-    <string name="btn_SubstractSeg">- Seg</string>
-    <string name="btn_SubstractMinute">- Min</string>
-    <string name="btn_AddMinute">+ Min</string>
-    <string name="btn_StartCounter">Empezar</string>
-    <string name="btn_StartCounter_Cancel">Cancelar</string>
-    <string name="btn_Pause">Pausar</string>
-    <string name="btn_Pause_Restart">Reanudar</string>
-    <string name="btn_Restart">Reiniciar</string>
-    <string name="warning_CoffeeLimit_Title">Aviso</string>
-    <string name="warning_CoffeeLimit_Body">Limite de cafés superados</string>
 
 
 </resources>
