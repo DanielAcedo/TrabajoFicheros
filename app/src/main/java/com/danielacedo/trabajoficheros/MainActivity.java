@@ -109,7 +109,10 @@ public class MainActivity extends AppCompatActivity {
 
             int intervalo = Integer.parseInt(line);
 
-            timerTick = intervalo;
+            if(intervalo > 0){
+                timerTick = intervalo;
+            }
+
         } catch (IOException e) {
             Toast.makeText(MainActivity.this, "Error al leer intervalo.txt", Toast.LENGTH_SHORT).show();
         } catch (NumberFormatException e){
