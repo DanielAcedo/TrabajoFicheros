@@ -1,0 +1,7 @@
+﻿30-11-2016 17:48:53 : Fallo en la conexión al descargar archivo de imágenes
+30-11-2016 17:48:59 : Fallo en la conexión al descargar archivo de imágenes
+30-11-2016 17:58:50 : Fallo en la conexión al descargar archivo de imágenes
+30-11-2016 17:59:3 : Fallo en la conexión al descargar archivo de imágenes
+30-11-2016 19:11:24 : Error al cargar imagen de url: http://ayecaramba.com .Error: Failed to decode stream.
+30-11-2016 19:15:37 : Fallo en la conexión al fichero de frases
+30-11-2016 19:15:48 : Error al cargar imagen de url: http://ayecaramba.com .Error: Failed to decode stream.
