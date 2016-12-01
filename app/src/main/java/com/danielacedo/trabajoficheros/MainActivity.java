@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     TextView txv_galleryPosition, txv_CurrentText, txv_text_position;
     ImageView imv_image;
 
-    private final String errorUploadPath = "http://192.168.1.132/datos/error.php";
+    private final String errorUploadPath = "http://192.168.3.61/datos/error.php";
 
     private int currentImage;
     private int currentText;
@@ -229,11 +229,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void downloadGallery(){
 
+        if(!edt_ImagePath.getText().toString().startsWith("https://")) {
 
-        if(!edt_ImagePath.getText().toString().startsWith("http://")){
-            String text = "http://"+ edt_ImagePath.getText().toString();
+            if (!edt_ImagePath.getText().toString().startsWith("http://")) {
+                String text = "http://" + edt_ImagePath.getText().toString();
 
-            edt_ImagePath.setText(text);
+                edt_ImagePath.setText(text);
+            }
         }
 
         if(!Patterns.WEB_URL.matcher(edt_ImagePath.getText().toString()).matches()){
@@ -321,9 +323,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void downloadPhrases(){
 
-        if(!edt_TextPath.getText().toString().startsWith("http://")){
-            String text = "http://"+ edt_TextPath.getText().toString();
-            edt_TextPath.setText(text);
+        if(!edt_TextPath.getText().toString().startsWith("https://")){
+            if(!edt_TextPath.getText().toString().startsWith("http://")){
+                String text = "http://"+ edt_TextPath.getText().toString();
+                edt_TextPath.setText(text);
+            }
         }
 
         if(!Patterns.WEB_URL.matcher(edt_TextPath.getText().toString()).matches()){
